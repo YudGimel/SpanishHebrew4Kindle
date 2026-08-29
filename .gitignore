@@ -2,7 +2,8 @@ data/raw/
 data/interim/
 data/processed/
 build/
-dist/
+dist/*
+!dist/.gitkeep
 *.egg-info/
 __pycache__/
 .pytest_cache/

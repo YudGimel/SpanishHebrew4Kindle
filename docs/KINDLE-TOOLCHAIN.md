@@ -33,6 +33,10 @@ Do not download KindleGen from an unofficial mirror and do not redistribute its
 binary. The generated directory under `build/kindle-source` is complete even
 when the proprietary compilation step cannot run.
 
+The portable, deterministic copy of that complete compiler input is
+`dist/SpanishHebrew-kindle-source.zip`. It is not installable on a Kindle; it is
+provided so the single compilation step can be performed on another machine.
+
 Physical-device validation remains essential: XML validation proves source
 structure, but only an Oasis test proves popup registration and firmware RTL
 rendering.

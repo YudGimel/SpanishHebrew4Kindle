@@ -3,7 +3,8 @@ from pathlib import Path
 import unittest
 import unicodedata
 
-from spanish_hebrew_kindle.generator import generate
+from spanish_hebrew_kindle.audit import audit
+from spanish_hebrew_kindle.generator import archive_source, generate
 from spanish_hebrew_kindle.importer import attach_spanish_forms, import_translation_export, read_entries, write_entries
 from spanish_hebrew_kindle.validator import validate_entries, validate_source
 
@@ -44,12 +45,20 @@ class PipelineTests(unittest.TestCase):
             write_entries(self.entries, processed)
             loaded = read_entries(processed)
             self.assertEqual(set(self.entries), set(loaded))
-            source = generate(loaded, root / "source")
+            source = generate(loaded, root / "source", partition_size=3)
             validate_source(source)
-            xhtml = (source / "OEBPS" / "dictionary.xhtml").read_text(encoding="utf-8")
+            documents = sorted((source / "OEBPS").glob("dictionary-*.xhtml"))
+            self.assertEqual(4, len(documents))
+            xhtml = "".join(path.read_text(encoding="utf-8") for path in documents)
             self.assertIn('dir="rtl"', xhtml)
             self.assertIn('idx:iform value="habló"', xhtml)
             self.assertIn("בית", xhtml)
+            report = audit(loaded)
+            self.assertEqual(10, report.headwords)
+            self.assertEqual(["ir", "ser"], report.required_resolutions["fue"])
+            first = archive_source(source, root / "one.zip").read_bytes()
+            second = archive_source(source, root / "two.zip").read_bytes()
+            self.assertEqual(first, second)
 
 
 if __name__ == "__main__":

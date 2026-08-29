@@ -32,4 +32,8 @@ def validate_source(directory: Path) -> None:
                      '<DictionaryOutLanguage>he</DictionaryOutLanguage>'):
         if expected not in raw:
             raise ValueError(f"missing metadata: {expected}")
-    ET.parse(directory / "OEBPS" / "dictionary.xhtml")
+    documents = sorted((directory / "OEBPS").glob("dictionary-*.xhtml"))
+    if not documents:
+        raise ValueError("dictionary contains no XHTML partitions")
+    for document in documents:
+        ET.parse(document)

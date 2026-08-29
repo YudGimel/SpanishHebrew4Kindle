@@ -8,9 +8,10 @@ into a registered lookup dictionary.
 
 ## Status
 
-The reproducible importer, morphology attachment, Kindle source generator,
-validator, and automated representative tests are implemented. A full release
-requires pinned Wiktionary snapshots and a lawful Amazon dictionary compiler.
+The reproducible importer, morphology attachment, partitioned Kindle source
+generator, audit report, deterministic source archive, validator, and automated
+representative tests are implemented. A full release requires pinned Wiktionary
+snapshots and a lawful Amazon dictionary compiler.
 The repository includes no proprietary Amazon software and no copyrighted
 commercial dictionary data. See [data licensing](docs/DATA-LICENSE.md) and the
 [toolchain record](docs/KINDLE-TOOLCHAIN.md).
@@ -48,10 +49,14 @@ both `ser` and `ir` analyses rather than discarding a valid ambiguity.
 
 ## Full build
 
-First audit and pin `snapshot` and `sha256` in `config/sources.json`; a release
-must never rely on the moving placeholders. Then:
+First make an explicitly unpinned audit download, verify its provenance and
+record the printed hashes in `config/sources.json`; a release must never rely on
+the moving placeholders. Then rerun without the override:
 
 ```console
+python3 scripts/download_sources.py --allow-unpinned
+# edit config/sources.json with snapshot dates and printed SHA-256 values
+rm -rf data/raw
 python3 scripts/download_sources.py
 PYTHONPATH=src python3 -m spanish_hebrew_kindle.cli build-source \
   --translations data/raw/translations.jsonl \
@@ -59,7 +64,13 @@ PYTHONPATH=src python3 -m spanish_hebrew_kindle.cli build-source \
 PYTHONPATH=src python3 -m spanish_hebrew_kindle.cli validate
 ```
 
-The intermediate source is `build/kindle-source/OEBPS/dictionary.opf`. Compile
+The build also writes `build/reports/audit.json`, including requested-word
+resolutions, coverage counts, part-of-speech counts, and ambiguity counts. It
+partitions large dictionaries into 5,000-entry XHTML files and creates the
+deterministic compiler-input artifact
+`dist/SpanishHebrew-kindle-source.zip`.
+
+The intermediate OPF is `build/kindle-source/OEBPS/dictionary.opf`. Compile
 it using the one manual command documented in
 `docs/KINDLE-TOOLCHAIN.md`. The expected final artifact is
 `dist/SpanishHebrew.mobi`. Until that compilation succeeds, no installable final
@@ -95,9 +106,10 @@ confirmed on the target firmware.
   hand-written conjugator, but incomplete Wiktionary paradigms remain incomplete.
 * Sense pairing does not guarantee dictionary-editor quality. Multiple Hebrew
   terms are retained so users are not shown one arbitrarily selected translation.
-* The initial environment could not access authoritative web pages or download
-  the large exports, so snapshot hashes and full-build statistics remain release
-  gates rather than fabricated values.
+* The build environment returned HTTP 403 for all attempted Kaikki downloads,
+  so snapshot hashes and full-build statistics remain release gates rather than
+  fabricated values. Run the documented commands on a network that permits the
+  configured source hosts.
 * Kindle compilation and popup behavior require the proprietary/manual step and
   a physical-device check described above.
 

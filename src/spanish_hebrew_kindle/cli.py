@@ -3,7 +3,8 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from .generator import generate
+from .audit import write_audit
+from .generator import archive_source, generate
 from .importer import attach_spanish_forms, import_translation_export, read_entries, write_entries
 from .validator import validate_entries, validate_source
 
@@ -16,6 +17,9 @@ def main(argv: list[str] | None = None) -> int:
     build.add_argument("--forms", type=Path, required=True)
     build.add_argument("--processed", type=Path, default=Path("data/processed/entries.jsonl"))
     build.add_argument("--output", type=Path, default=Path("build/kindle-source"))
+    build.add_argument("--report", type=Path, default=Path("build/reports/audit.json"))
+    build.add_argument("--archive", type=Path, default=Path("dist/SpanishHebrew-kindle-source.zip"))
+    build.add_argument("--partition-size", type=int, default=5000)
     check = sub.add_parser("validate", help="validate processed data and generated source")
     check.add_argument("--processed", type=Path, default=Path("data/processed/entries.jsonl"))
     check.add_argument("--source", type=Path, default=Path("build/kindle-source"))
@@ -25,9 +29,12 @@ def main(argv: list[str] | None = None) -> int:
         attach_spanish_forms(entries, args.forms)
         validate_entries(entries)
         write_entries(entries, args.processed)
-        generate(entries, args.output)
+        report = write_audit(entries, args.report)
+        generate(entries, args.output, args.partition_size)
         validate_source(args.output)
-        print(f"headwords={len(entries)} forms={sum(len(e.forms) for e in entries.values())}")
+        archive_source(args.output, args.archive)
+        print(f"headwords={report.headwords} forms={report.attached_forms} "
+              f"lookups={report.unique_lookup_forms} source_archive={args.archive}")
     else:
         entries = read_entries(args.processed)
         lookup = validate_entries(entries)
