@@ -22,7 +22,8 @@ commercial dictionary data. See [data licensing](docs/DATA-LICENSE.md) and the
 2. Within each individual sense, pair `es` and `he` translations. This avoids
    mechanically joining translations belonging to unrelated senses.
 3. Merge duplicate Spanish headwords and Hebrew translations deterministically.
-4. Stream Spanish Wiktextract records and attach source-attested inflected forms
+4. Stream the Spanish-language entry slice of the English Wiktextract export
+   and attach source-attested inflected forms
    to matching lemmas. Romanizations, misspellings, and nonstandard forms are
    excluded.
 5. Validate nonempty Hebrew definitions, duplicates, Unicode, and collisions.
