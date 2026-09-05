@@ -2,11 +2,11 @@
 
 ## Selected source
 
-The production pipeline is designed for the **English Wiktionary** and
-**Spanish Wiktionary** JSONL exports produced by
+The production pipeline uses **English Wiktionary** JSONL exports produced by
 [Wiktextract/Kaikki](https://kaikki.org/). English entries supply Spanish and
-Hebrew translations paired within the same source sense. Spanish entries supply
-attested forms of those Spanish lemmas. The small files in `tests/fixtures` are
+Hebrew translations paired within the same source sense; the Spanish-language
+entry slice from that same Wiktionary edition supplies attested forms of those
+Spanish lemmas. The small files in `tests/fixtures` are
 hand-written test inputs and are not the distributable dictionary.
 
 Wiktionary page text is offered under the Creative Commons

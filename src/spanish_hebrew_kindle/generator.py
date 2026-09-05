@@ -57,7 +57,8 @@ def generate(entries: dict[str, Entry], output: Path, partition_size: int = 5000
 <head><meta charset="utf-8"/><title>Diccionario español-hebreo</title><link rel="stylesheet" href="dictionary.css"/></head>
 <body>{body}</body></html>'''
         (output / "OEBPS" / name).write_text(xhtml, encoding="utf-8")
-    manifest = "".join(f'<item id="dictionary-{i}" href="{name}" media-type="application/xhtml+xml"/>' for i, name in enumerate(names, 1))
+    manifest = '<item id="dictionary-css" href="dictionary.css" media-type="text/css"/>'
+    manifest += "".join(f'<item id="dictionary-{i}" href="{name}" media-type="application/xhtml+xml"/>' for i, name in enumerate(names, 1))
     spine = "".join(f'<itemref idref="dictionary-{i}"/>' for i in range(1, len(names) + 1))
     opf = OPF_TEMPLATE.format(manifest=manifest, spine=spine)
     (output / "mimetype").write_text("application/epub+zip", encoding="ascii")

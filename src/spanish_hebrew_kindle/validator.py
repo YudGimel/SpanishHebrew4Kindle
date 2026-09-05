@@ -32,6 +32,12 @@ def validate_source(directory: Path) -> None:
                      '<DictionaryOutLanguage>he</DictionaryOutLanguage>'):
         if expected not in raw:
             raise ValueError(f"missing metadata: {expected}")
+    manifest_items = {
+        (item.get("href"), item.get("media-type"))
+        for item in opf.findall(".//{http://www.idpf.org/2007/opf}manifest/{http://www.idpf.org/2007/opf}item")
+    }
+    if ("dictionary.css", "text/css") not in manifest_items:
+        raise ValueError("missing dictionary.css from OPF manifest")
     documents = sorted((directory / "OEBPS").glob("dictionary-*.xhtml"))
     if not documents:
         raise ValueError("dictionary contains no XHTML partitions")
