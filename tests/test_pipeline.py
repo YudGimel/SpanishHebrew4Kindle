@@ -1,3 +1,4 @@
+import json
 import tempfile
 from pathlib import Path
 import json
@@ -5,6 +6,7 @@ import subprocess
 import sys
 import unittest
 import unicodedata
+import xml.etree.ElementTree as ET
 
 from spanish_hebrew_kindle.audit import audit
 from spanish_hebrew_kindle.generator import archive_source, generate
@@ -12,6 +14,7 @@ from spanish_hebrew_kindle.importer import attach_spanish_forms, import_translat
 from spanish_hebrew_kindle.validator import validate_entries, validate_source
 
 FIXTURES = Path(__file__).parent / "fixtures"
+PROJECT_ROOT = Path(__file__).parents[1]
 
 
 class PipelineTests(unittest.TestCase):
@@ -71,6 +74,13 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual(set(self.entries), set(loaded))
             source = generate(loaded, root / "source", partition_size=3)
             validate_source(source)
+            opf = ET.parse(source / "OEBPS" / "dictionary.opf")
+            css = opf.find(
+                './/{http://www.idpf.org/2007/opf}manifest/'
+                '{http://www.idpf.org/2007/opf}item[@href="dictionary.css"]'
+            )
+            self.assertIsNotNone(css)
+            self.assertEqual("text/css", css.get("media-type"))
             documents = sorted((source / "OEBPS").glob("dictionary-*.xhtml"))
             self.assertEqual(4, len(documents))
             xhtml = "".join(path.read_text(encoding="utf-8") for path in documents)
