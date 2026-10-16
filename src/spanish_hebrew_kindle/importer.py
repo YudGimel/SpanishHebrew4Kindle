@@ -33,6 +33,26 @@ def _terms(items: Iterable[dict], language: str) -> list[str]:
     return list(dict.fromkeys(result))
 
 
+def _translation_groups(record: dict) -> Iterable[list[dict]]:
+    """Yield translations grouped by their Wiktextract sense metadata.
+
+    Kaikki English exports store translations at record level. Keep support for
+    the compact, sense-nested fixture schema used by earlier versions.
+    """
+    translations = record.get("translations")
+    if translations is not None:
+        groups: dict[tuple[str, object], list[dict]] = defaultdict(list)
+        for item in translations:
+            if item.get("sense_index") is not None:
+                key = ("sense_index", item["sense_index"])
+            else:
+                sense = clean(item.get("sense", ""))
+                key = ("sense", sense) if sense else ("unscoped", None)
+            groups[key].append(item)
+        return groups.values()
+    return (sense.get("translations", []) for sense in record.get("senses", [record]))
+
+
 def import_translation_export(path: Path) -> dict[str, Entry]:
     """Pair Spanish and Hebrew translations occurring in the same Wiktionary sense.
 
@@ -42,9 +62,7 @@ def import_translation_export(path: Path) -> dict[str, Entry]:
     entries: dict[str, Entry] = {}
     for record in records(path):
         pos = clean(record.get("pos", ""))
-        senses = record.get("senses") or [record]
-        for sense in senses:
-            translations = sense.get("translations", [])
+        for translations in _translation_groups(record):
             spanish = _terms(translations, "es")
             hebrew = [x for x in _terms(translations, "he") if contains_hebrew(x)]
             if not spanish or not hebrew:

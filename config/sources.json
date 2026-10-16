@@ -8,7 +8,7 @@
     "sha256": "record before a release"
   },
   "spanish_forms": {
-    "source": "Spanish Wiktionary",
+    "source": "English Wiktionary (Spanish-language entries)",
     "processor": "Kaikki/Wiktextract",
     "url": "https://kaikki.org/dictionary/Spanish/kaikki.org-dictionary-Spanish.jsonl",
     "license": "CC BY-SA 4.0 and GFDL; generated dictionary elects CC BY-SA 4.0",
