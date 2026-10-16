@@ -33,3 +33,16 @@ be credited as the extraction software. No commercial dictionary may be added.
 * Do not imply endorsement by Wikimedia, Kaikki, or Amazon.
 
 This document is an engineering compliance record, not legal advice.
+
+## Configured raw inputs
+
+* `raw-wiktextract-data.jsonl.gz` is the English Wiktionary extraction. Its
+  multilingual translation tables supply Spanish (`es`) and Hebrew (`he`) terms
+  under a shared English sense; English text is not used as the Kindle output.
+* `es-extract.jsonl.gz` is the Spanish Wiktionary extraction and supplies
+  source-attested Spanish forms.
+
+The Kaikki raw download URLs are moving snapshots. The dates in the source
+configuration identify the upstream dumps visible during the 2026-10-16 audit,
+but a distributor must preserve the downloaded manifest and replace placeholder
+checksums with hashes of the exact released inputs.

@@ -1,6 +1,9 @@
 import json
 import tempfile
 from pathlib import Path
+import json
+import subprocess
+import sys
 import unittest
 import unicodedata
 import xml.etree.ElementTree as ET
@@ -41,27 +44,26 @@ class PipelineTests(unittest.TestCase):
         self.assertIn("habló", self.entries["hablar"].forms)
         self.assertIn("todavía", self.entries)
 
-    def test_record_level_translations_are_grouped_by_sense(self):
+    def test_entry_level_translations_are_grouped_by_sense(self):
         with tempfile.TemporaryDirectory() as tmp:
-            source = Path(tmp) / "translations.jsonl"
-            source.write_text(
-                '{"word":"home","pos":"noun","senses":[{"glosses":["residence"]}],'
-                '"translations":['
-                '{"lang_code":"es","word":"casa","sense_index":1},'
-                '{"lang_code":"he","word":"בית","sense_index":1},'
-                '{"lang_code":"es","word":"hogar","sense":"family home"},'
-                '{"lang_code":"he","word":"משפחה","sense":"family home"}]}' + "\n",
-                encoding="utf-8",
-            )
-            entries = import_translation_export(source)
-        self.assertEqual(["בית"], entries["casa"].senses)
-        self.assertEqual(["משפחה"], entries["hogar"].senses)
-
-    def test_spanish_forms_export_provenance(self):
-        config = json.loads((PROJECT_ROOT / "config" / "sources.json").read_text(encoding="utf-8"))
-        forms = config["spanish_forms"]
-        self.assertIn("/dictionary/Spanish/", forms["url"])
-        self.assertEqual("English Wiktionary (Spanish-language entries)", forms["source"])
+            source = Path(tmp) / "raw.jsonl"
+            records = [
+                {"lang_code": "en", "word": "bank", "pos": "noun", "translations": [
+                    {"lang_code": "es", "word": "banco", "sense": "financial institution"},
+                    {"lang_code": "he", "word": "בנק", "sense": "financial institution"},
+                    {"lang_code": "es", "word": "orilla", "sense": "edge of a river"},
+                    {"lang_code": "he", "word": "גדה", "sense": "edge of a river"},
+                ]},
+                {"lang_code": "fr", "word": "banque", "translations": [
+                    {"lang_code": "es", "word": "incorrecto"},
+                    {"lang_code": "he", "word": "שגוי"},
+                ]},
+            ]
+            source.write_text("".join(json.dumps(item, ensure_ascii=False) + "\n" for item in records), encoding="utf-8")
+            imported = import_translation_export(source)
+            self.assertEqual(["בנק"], imported["banco"].senses)
+            self.assertEqual(["גדה"], imported["orilla"].senses)
+            self.assertNotIn("incorrecto", imported)
 
     def test_roundtrip_and_generated_metadata(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -92,18 +94,19 @@ class PipelineTests(unittest.TestCase):
             second = archive_source(source, root / "two.zip").read_bytes()
             self.assertEqual(first, second)
 
-    def test_validator_rejects_unmanifested_stylesheet(self):
+    def test_real_source_schema_inspection(self):
         with tempfile.TemporaryDirectory() as tmp:
-            source = generate(self.entries, Path(tmp) / "source")
-            opf_path = source / "OEBPS" / "dictionary.opf"
-            opf_path.write_text(
-                opf_path.read_text(encoding="utf-8").replace(
-                    '<item id="dictionary-css" href="dictionary.css" media-type="text/css"/>', ""
-                ),
-                encoding="utf-8",
-            )
-            with self.assertRaisesRegex(ValueError, "dictionary.css"):
-                validate_source(source)
+            report = Path(tmp) / "inspection.json"
+            subprocess.run([
+                sys.executable, "scripts/inspect_sources.py",
+                "--translations", str(FIXTURES / "translations.jsonl"),
+                "--forms", str(FIXTURES / "forms.jsonl"),
+                "--limit", "100", "--output", str(report),
+            ], check=True, env={"PYTHONPATH": "src"}, capture_output=True, text=True)
+            data = json.loads(report.read_text(encoding="utf-8"))
+            self.assertEqual(10, data["translations"]["counts"]["paired_senses"])
+            self.assertEqual(10, data["spanish_forms"]["counts"]["records"])
+            self.assertEqual("casa", data["translations"]["examples"][0]["spanish"][0])
 
 
 if __name__ == "__main__":

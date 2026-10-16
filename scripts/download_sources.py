@@ -7,7 +7,11 @@ from datetime import datetime, timezone
 import hashlib
 import json
 from pathlib import Path
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
+
+
+def valid_checksum(value: object) -> bool:
+    return isinstance(value, str) and len(value) == 64 and all(c in "0123456789abcdefABCDEF" for c in value)
 
 
 def main() -> int:
@@ -21,17 +25,21 @@ def main() -> int:
     args.output.mkdir(parents=True, exist_ok=True)
     for name, source in config.items():
         expected = source["sha256"]
-        if len(expected) != 64 and not args.allow_unpinned:
+        if not valid_checksum(expected) and not args.allow_unpinned:
             raise SystemExit(f"{name} has no pinned SHA-256; set it or pass --allow-unpinned for an audit")
-        destination = args.output / f"{name}.jsonl"
-        temporary = destination.with_suffix(".part")
+        filename = source.get("filename")
+        if not filename or Path(filename).name != filename:
+            raise SystemExit(f"{name} has an invalid filename: {filename!r}")
+        destination = args.output / filename
+        temporary = destination.with_name(destination.name + ".part")
         digest = hashlib.sha256()
-        with urlopen(source["url"]) as response, temporary.open("wb") as stream:
+        request = Request(source["url"], headers={"User-Agent": "SpanishHebrew4Kindle/0.1"})
+        with urlopen(request) as response, temporary.open("wb") as stream:
             while chunk := response.read(1024 * 1024):
                 stream.write(chunk)
                 digest.update(chunk)
         actual = digest.hexdigest()
-        if len(expected) == 64 and actual != expected:
+        if valid_checksum(expected) and actual.lower() != expected.lower():
             temporary.unlink()
             raise SystemExit(f"checksum mismatch for {name}: expected {expected}, got {actual}")
         temporary.replace(destination)

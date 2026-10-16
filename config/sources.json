@@ -2,17 +2,19 @@
   "translations": {
     "source": "English Wiktionary",
     "processor": "Kaikki/Wiktextract",
-    "url": "https://kaikki.org/dictionary/English/kaikki.org-dictionary-English.jsonl",
+    "url": "https://kaikki.org/dictionary/raw-wiktextract-data.jsonl.gz",
+    "filename": "translations.jsonl.gz",
     "license": "CC BY-SA 4.0 and GFDL; generated dictionary elects CC BY-SA 4.0",
-    "snapshot": "pin before a release",
+    "snapshot": "English Wiktionary dump 2026-09-02; pin downloaded bytes before release",
     "sha256": "record before a release"
   },
   "spanish_forms": {
     "source": "English Wiktionary (Spanish-language entries)",
     "processor": "Kaikki/Wiktextract",
-    "url": "https://kaikki.org/dictionary/Spanish/kaikki.org-dictionary-Spanish.jsonl",
+    "url": "https://kaikki.org/dictionary/downloads/es/es-extract.jsonl.gz",
+    "filename": "spanish_forms.jsonl.gz",
     "license": "CC BY-SA 4.0 and GFDL; generated dictionary elects CC BY-SA 4.0",
-    "snapshot": "pin before a release",
+    "snapshot": "Spanish Wiktionary dump 2026-10-01; pin downloaded bytes before release",
     "sha256": "record before a release"
   }
 }

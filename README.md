@@ -50,20 +50,41 @@ both `ser` and `ir` analyses rather than discarding a valid ambiguity.
 
 ## Full build
 
-First make an explicitly unpinned audit download, verify its provenance and
-record the printed hashes in `config/sources.json`; a release must never rely on
-the moving placeholders. Then rerun without the override:
+The configured downloads are compressed raw JSONL: the English Wiktionary
+Wiktextract export supplies multilingual translation tables, while the Spanish
+Wiktionary export supplies Spanish forms. The English file contains both `es`
+and `he` translations; English is only the shared sense pivot. First make an
+explicitly unpinned audit download, verify its provenance, and record the
+printed hashes in `config/sources.json`; a release must never rely on moving
+unverified bytes. Then inspect the real schemas before the long full build:
 
 ```console
 python3 scripts/download_sources.py --allow-unpinned
-# edit config/sources.json with snapshot dates and printed SHA-256 values
-rm -rf data/raw
-python3 scripts/download_sources.py
-PYTHONPATH=src python3 -m spanish_hebrew_kindle.cli build-source \
-  --translations data/raw/translations.jsonl \
-  --forms data/raw/spanish_forms.jsonl
+# edit config/sources.json with confirmed snapshot dates and printed SHA-256 values
+make inspect
+make full
 PYTHONPATH=src python3 -m spanish_hebrew_kindle.cli validate
 ```
+
+The explicit alternative to `make full` is:
+
+```console
+PYTHONPATH=src python3 -m spanish_hebrew_kindle.cli build-source \
+  --translations data/raw/translations.jsonl.gz \
+  --forms data/raw/spanish_forms.jsonl.gz
+```
+
+`make inspect` scans up to 100,000 records from each input and
+writes `build/reports/source-inspection.json`. Confirm that it reports paired
+Spanish/Hebrew senses and Spanish records with forms before proceeding. The
+importer reads `.gz` directly, so decompression is unnecessary.
+
+Raw Wiktextract can store translations either inside a sense or at entry level.
+For entry-level data, the importer groups translation records by their `sense`
+label before pairing Spanish and Hebrew and ignores non-English pivot entries.
+The morphology pass likewise ignores non-Spanish entries in the Spanish-edition
+export. This prevents unrelated meanings or other-language records from being
+silently combined.
 
 The build also writes `build/reports/audit.json`, including requested-word
 resolutions, coverage counts, part-of-speech counts, and ambiguity counts. It

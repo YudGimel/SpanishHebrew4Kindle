@@ -33,24 +33,21 @@ def _terms(items: Iterable[dict], language: str) -> list[str]:
     return list(dict.fromkeys(result))
 
 
-def _translation_groups(record: dict) -> Iterable[list[dict]]:
-    """Yield translations grouped by their Wiktextract sense metadata.
+def translation_groups(record: dict) -> Iterator[list[dict]]:
+    """Yield sense-safe translation groups from raw or postprocessed data.
 
-    Kaikki English exports store translations at record level. Keep support for
-    the compact, sense-nested fixture schema used by earlier versions.
+    Wiktextract may place translations directly on a sense or at entry level.
+    Entry-level translations carry a free-text ``sense`` label; keeping labels
+    separate prevents unrelated meanings from being paired.
     """
-    translations = record.get("translations")
-    if translations is not None:
-        groups: dict[tuple[str, object], list[dict]] = defaultdict(list)
-        for item in translations:
-            if item.get("sense_index") is not None:
-                key = ("sense_index", item["sense_index"])
-            else:
-                sense = clean(item.get("sense", ""))
-                key = ("sense", sense) if sense else ("unscoped", None)
-            groups[key].append(item)
-        return groups.values()
-    return (sense.get("translations", []) for sense in record.get("senses", [record]))
+    for sense in record.get("senses", []):
+        translations = sense.get("translations", [])
+        if translations:
+            yield translations
+    grouped: dict[str, list[dict]] = defaultdict(list)
+    for translation in record.get("translations", []):
+        grouped[clean(translation.get("sense", ""))].append(translation)
+    yield from grouped.values()
 
 
 def import_translation_export(path: Path) -> dict[str, Entry]:
@@ -61,8 +58,10 @@ def import_translation_export(path: Path) -> dict[str, Entry]:
     """
     entries: dict[str, Entry] = {}
     for record in records(path):
+        if record.get("lang_code") not in (None, "en"):
+            continue
         pos = clean(record.get("pos", ""))
-        for translations in _translation_groups(record):
+        for translations in translation_groups(record):
             spanish = _terms(translations, "es")
             hebrew = [x for x in _terms(translations, "he") if contains_hebrew(x)]
             if not spanish or not hebrew:
@@ -84,6 +83,8 @@ SKIP_FORM_TAGS = {"romanization", "alternative", "misspelling", "nonstandard"}
 def attach_spanish_forms(entries: dict[str, Entry], path: Path) -> None:
     """Attach source-attested forms from a Spanish Wiktextract JSONL export."""
     for record in records(path):
+        if record.get("lang_code") not in (None, "es"):
+            continue
         lemma = clean(record.get("word", ""))
         entry = entries.get(lemma)
         if not entry:
