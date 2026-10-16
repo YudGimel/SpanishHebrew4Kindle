@@ -1,0 +1,10 @@
+{"word":"house","pos":"noun","senses":[{"translations":[{"lang_code":"es","word":"casa"},{"lang_code":"he","word":"בית"},{"lang_code":"he","word":"דירה"}]}]}
+{"word":"speak","pos":"verb","senses":[{"translations":[{"lang_code":"es","word":"hablar"},{"lang_code":"he","word":"לדבר"}]}]}
+{"word":"have","pos":"verb","senses":[{"translations":[{"lang_code":"es","word":"tener"},{"lang_code":"he","word":"להחזיק"}]}]}
+{"word":"do","pos":"verb","senses":[{"translations":[{"lang_code":"es","word":"hacer"},{"lang_code":"he","word":"לעשות"}]}]}
+{"word":"be","pos":"verb","senses":[{"translations":[{"lang_code":"es","word":"ser"},{"lang_code":"he","word":"להיות"}]}]}
+{"word":"go","pos":"verb","senses":[{"translations":[{"lang_code":"es","word":"ir"},{"lang_code":"he","word":"ללכת"}]}]}
+{"word":"better","pos":"adj","senses":[{"translations":[{"lang_code":"es","word":"mejor"},{"lang_code":"he","word":"טוב יותר"}]}]}
+{"word":"still","pos":"adv","senses":[{"translations":[{"lang_code":"es","word":"todavía"},{"lang_code":"he","word":"עדיין"}]}]}
+{"word":"although","pos":"conj","senses":[{"translations":[{"lang_code":"es","word":"aunque"},{"lang_code":"he","word":"אף על פי ש"}]}]}
+{"word":"develop","pos":"verb","senses":[{"translations":[{"lang_code":"es","word":"desarrollar"},{"lang_code":"he","word":"לפתח"}]}]}
